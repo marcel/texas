@@ -1,4 +1,4 @@
-name := "Hold Em"
+name := "texas"
 
 version := "1.0"
 
