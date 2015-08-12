@@ -1,20 +1,26 @@
 package com.andbutso.poker.cards
 
-import com.andbutso.poker.cards.HandRank.HandRank
+object Hand {
+  val Empty = Hand(Set.empty[Card])
 
-case class Hand(cards: Set[Card]) {
+  def apply(cards: Card*): Hand = {
+    Hand(Cards(cards: _*))
+  }
+}
+
+case class Hand(cards: Cards) {
   def equals(otherHand: Hand) = {
     cards.equals(otherHand.cards)
   }
 
   override def hashCode() = cards.hashCode()
 
-  def +(cardsToAdd: Set[Card]): Hand = {
+  def +(cardsToAdd: Cards): Hand = {
     copy(cards = cards ++ cardsToAdd)
   }
 
   def +(cardToAdd: Card): Hand = {
-    this + Set(cardToAdd)
+    this + Cards(cardToAdd)
   }
 
   def value = {
@@ -32,8 +38,24 @@ case class Hand(cards: Set[Card]) {
   def possibleNextHands = {
     val deck = Deck() - cards
     deck.cards map { card =>
-      this + Set(card)
+      this + card
     }
+  }
+
+  def outs = {
+    possibleNextHands filter { _.value.value > value.value }
+  }
+
+  def outsToImproveToBetterHandRank = {
+    possibleNextHands filter { _.value.magnitude > value.magnitude }
+  }
+
+  def oddsOfAnOut = {
+    outs.size.toFloat / (52 - cards.size)
+  }
+
+  def oddsToImproveToABetterHandRank = {
+    outsToImproveToBetterHandRank.size.toFloat / (52 - cards.size)
   }
 
   def nuts(numberOfAdditionalCards: Int = 1) = {
@@ -46,7 +68,7 @@ case class Hand(cards: Set[Card]) {
     }
 
     handsToConsider map { hand =>
-      HandRankEvaluator(hand)
+      hand.value
     } groupBy {
       _.magnitude
     } maxBy { case (score, hands) =>
@@ -67,6 +89,42 @@ case class Hand(cards: Set[Card]) {
   }
 
   override def toString = {
-    "Hand(%s)".format(cards map { _.toString } mkString)
+    "Hand(%s)".format(cards map { _.toString } mkString(" "))
   }
 }
+
+//// TODO reconcile with PokerStars version
+//case class Player(name: Int, hand: Hand = Hand.Empty) {
+//  def +(card: Card) = {
+//    copy(hand = hand + card)
+//  }
+//}
+
+//// TODO reconcile with PokerStars version
+//case class Table(players: Seq[Player]) {
+//  private[this] val seatingAssignments = players.zipWithIndex map { case (player, index) => player.name -> index } toMap
+//
+//  def update(player: Player)(f: Player => Player) = {
+//    copy(players = players.patch(seatingAssignments(player.name), Seq(f(player)), 1))
+//  }
+//}
+
+//case class Dealer(deck: Deck, table: Table) {
+//  def deal = {
+//    0.to(1).foldLeft(this) { case (updatedDealer, _) =>
+//      updatedDealer.table.players.foldLeft((updatedDealer.deck, updatedDealer.table)) { case ((updatedDeck, updatedTable), player) =>
+//        val card = updatedDeck.deal()
+//
+//        (updatedDeck - card, updatedTable.update(player) { playerToDealTo =>
+//          playerToDealTo + card.head
+//        })
+//      } match {
+//        case (d: Deck, t: Table) => copy(d, t)
+//      }
+//    }
+//  }
+//
+//  def burnCard = ???
+//
+//}
+

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+sbt "set offline := true" clean coverage test coverageReport &&
+open '/Users/marcel/IdeaProjects/texas/target/scala-2.11/scoverage-report/index.html'
