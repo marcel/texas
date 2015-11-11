@@ -27,6 +27,10 @@ case class Hand(cards: Cards) {
     HandRankEvaluator(this)
   }
 
+  def isSuited = {
+    bySuit.keySet.size == 1
+  }
+
   def bySuit = {
     cards.groupBy { _.suit }
   }

@@ -5,4 +5,5 @@ package object cards {
   def Cards(cards: Card*) = Set(cards: _*)
   import com.andbutso.poker.cards.Rank._
 
+  implicit def cardsToHand(cards: Cards) = new Hand(cards)
 }
